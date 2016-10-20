@@ -69,6 +69,7 @@ const formatElement = (name, attribs, isClosingTag) => {
     case 'a':
       if (isClosingTag) {
         if (elements.a.text) {
+          textString = textString.replace(/\s+$/g, '');
           textString += elements.a.text;
           elements.a.text = '';
         }
