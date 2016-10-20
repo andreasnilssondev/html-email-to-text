@@ -1,0 +1,21 @@
+{
+  "name": "html-email-to-text",
+  "version": "1.0.0",
+  "description": "Convert html emails to (formatted) plain text",
+  "license": "MIT",
+  "repository": "/NaNdreas/html-email-to-text",
+  "author": {
+    "name": "Andreas Nilsson",
+    "email": "andreas.nilsson333@gmail.com",
+    "url": "github.com/NaNdreas"
+  },
+  "engines": {
+    "node": ">=4"
+  },
+  "files": [
+    "index.js"
+  ],
+  "dependencies": {
+    "htmlparser2": "^3.9.2"
+  }
+}
