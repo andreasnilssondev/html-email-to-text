@@ -52,14 +52,31 @@ const formatText = text => {
   if (/^\s*$/.test(text)) {
     return;
   }
-
   if (elements.a.current) {
-    elements.a.text += ` ${text}`;
+    elements.a.text += `${text}`;
   } else if (elements.title.current) {
     textString += `${text.toUpperCase()}\n\n--------------------\n\n`;
   } else if (!elements.style.current && !elements.style.script) {
     text = text.replace(/[\s]{2,}$/g, '');
     text = text.replace(/^[\s]{2,}/g, '\n\n');
+
+    if (!text.endsWith(' ')) {
+      // Make sure string ends with some kind of whitespace
+      text += ' ';
+    }
+
+    if (text.startsWith(' ')) {
+      text = text.replace(/^ /, '');
+    }
+
+    if (text.startsWith('.') || text.startsWith(',') || text.startsWith('!') || text.startsWith('?')) {
+      // Prevent space if matching any of . , ! ?
+      textString = textString.replace(/ $/, '');
+    } else if (textString.endsWith(']')) {
+      // Make sure there's space after href
+      textString += ' ';
+    }
+
     textString += text;
   }
 };
@@ -69,13 +86,12 @@ const formatElement = (name, attribs, isClosingTag) => {
     case 'a':
       if (isClosingTag) {
         if (elements.a.text) {
-          textString = textString.replace(/\s+$/g, '');
           textString += elements.a.text;
           elements.a.text = '';
         }
 
         if (elements.a.href) {
-          textString += elements.a.href;
+          textString += `${elements.a.href}`;
           elements.a.href = '';
         }
 
@@ -96,14 +112,15 @@ const formatElement = (name, attribs, isClosingTag) => {
 
         if (elements.img.alt) {
           if (!textString.match(/[\n]{2,}$/g)) {
-            textString += '\n\n';
+            textString = textString.replace(/\s$/g, '\n\n');
           }
 
           textString += `${elements.img.alt}\n`;
           elements.img.alt = '';
 
           if (elements.a.href) {
-            elements.a.href = `${elements.a.href.replace(/^\s+/g, '')}\n\n`;
+            elements.a.href = `${elements.a.href.replace(/^\s+/g, '')}`;
+            elements.a.href = `${elements.a.href.replace(/\s+$/g, '')}\n\n`;
           }
         }
 
@@ -115,7 +132,7 @@ const formatElement = (name, attribs, isClosingTag) => {
       }
 
       if (attribs.alt) {
-        elements.img.alt = attribs.alt.replace(/^\s\s+/g, '\n\n');
+        elements.img.alt = attribs.alt.replace(/^\s{2,}/g, '\n\n');
       }
 
       elements.img.current = true;

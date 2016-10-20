@@ -30,17 +30,26 @@ htmlToText('Html as a string');
 	          <td>
 	            <table>
 	              <tr>
-	                <td>&nbsp;</td> <!-- whitespace and comments will be ignored -->
+	                <td>Hello there</td>
 	              </tr>
 	              <tr>
-	                <td>Hello there</td>
+	                <td>email coder</td>
+	              </tr>
+	              <tr>
+	                <td>this is an example of </td>
+	              </tr>
+	              <tr>
+	                <td>html-email-to-text formatting</td>
 	              </tr>
 	            </table>
 	          </td>
 	        </tr>
 	        <tr>
 	        	<td>
-	        		This email can be formatted in plain text too. It works with a <a href="/links">link</a> or <a href="/another-link">two</a>.
+	        		This email &nbsp;&nbsp;&nbsp;&nbsp; can be formatted in plain text too.
+	        		&nbsp;&nbsp;&nbsp;&nbsp;
+	        		<!-- whitespace and comments will be ignored -->
+	        		It works with a <a href="/links">link</a> or <a href="/another-link">two</a>.
 	        	</td>
 	        </tr>
 	        <tr>
@@ -63,9 +72,11 @@ SUBJECT LINE: TITLE WILL BE UPPERCASE
 
 --------------------
 
-Hello there
+Hello there email coder this is an example of html-email-to-text formatting
 
-This email can be formatted in plain text too. It works with a link [/links] or two [/another-link].
+This email can be formatted in plain text too.
+
+It works with a link [/links] or two [/another-link].
 
 If you wrap links around images it will use the alt text together with the link.
 
