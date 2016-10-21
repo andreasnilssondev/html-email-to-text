@@ -53,28 +53,37 @@ const formatText = text => {
     return;
   }
 
-  // Format start of string
-  if (/^\s{2,}/.test(text) || /\s{2,}$/.test(textString)) {
-    // If text starts with multiple whitespace chars,
-    // or previous string ends with multiple whitespace chars
-    // replace with two line breaks only
-    text = text.replace(/^\s+/g, '\n\n');
+  var doubleLineBreak = false;
 
-    // Max 2 line breaks in a row
-    textString = textString.replace(/\s+$/g, '');
-  } else {
-    // Otherwise no space
-    text = text.replace(/^\s+/g, '');
+  if (/\s{2,}$/.test(textString)) {
+    textString = textString.replace(/\s+$/, '\n\n');
+    doubleLineBreak = true;
+  }
+
+  if (/^\s{2,}/.test(text)) {
+    if (doubleLineBreak) {
+      text = text.replace(/^\s+/, '');
+    } else {
+      text = text.replace(/^\s+/, '\n\n');
+    }
+
+    doubleLineBreak = true;
+  }
+
+  if (!/^\n/.test(text) && doubleLineBreak) {
+    text = text.replace(/^\s+/, '');
   }
 
   // Format end of string
   if (/\s{2,}$/.test(text)) {
     // if text ends with multiple whitespace chars
     // replace with two line breaks only
-    text = text.replace(/\s+$/, '\n\n');
-  } else if (!/\s+$/.test(text)) {
+    text = text.replace(/\s+$/, ' ');
+  }
+
+  if (!/\s+$/.test(text)) {
     // If no whitespace after string, add one space
-    text += ' ';
+    // text += ' ';
   }
 
   if (elements.a.isOpen) {
@@ -96,6 +105,9 @@ const formatElement = (name, attribs, isClosingTag) => {
     case 'a':
       if (isClosingTag) {
         if (elements.a.text) {
+          if (/\s{2,}$/.test(textString)) {
+
+          }
           textString += elements.a.text;
           elements.a.text = '';
         }
@@ -110,7 +122,7 @@ const formatElement = (name, attribs, isClosingTag) => {
       }
 
       if (attribs.href) {
-        elements.a.href = `[${attribs.href}] `;
+        elements.a.href = ` [${attribs.href}] `;
       }
 
       elements.a.isOpen = true;
@@ -122,11 +134,12 @@ const formatElement = (name, attribs, isClosingTag) => {
         if (elements.img.alt) {
           // Max two line breaks as whitespace.
           textString = textString.replace(/\s+$/, '');
-          textString += `\n\n${elements.img.alt}`;
+          textString += `\n\n${elements.img.alt}\n`;
           elements.img.alt = '';
 
           if (elements.a.href) {
-            textString += `\n${elements.a.href}`;
+            elements.a.href += '\n\n';
+            textString += `${elements.a.href.replace(/^ /, '')}`;
             elements.a.href = '';
             elements.a.text = '';
           }
