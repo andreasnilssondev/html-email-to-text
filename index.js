@@ -29,22 +29,22 @@ const parser = new htmlparser.Parser({
 
 const elements = {
   a: {
-    current: false,
+    isOpen: false,
     href: '',
     text: ''
   },
   img: {
-    current: false,
+    isOpen: false,
     alt: ''
   },
   style: {
-    current: false
+    isOpen: false
   },
   script: {
-    current: false
+    isOpen: false
   },
   title: {
-    current: false
+    isOpen: false
   }
 };
 
@@ -77,11 +77,11 @@ const formatText = text => {
     text += ' ';
   }
 
-  if (elements.a.current) {
+  if (elements.a.isOpen) {
     elements.a.text += text;
-  } else if (elements.title.current) {
+  } else if (elements.title.isOpen) {
     textString += `${text.toUpperCase()}\n\n--------------------\n\n`;
-  } else if (!elements.style.current && !elements.style.script) {
+  } else if (!elements.style.isOpen && !elements.style.script) {
     if (text.startsWith('.') || text.startsWith(',') || text.startsWith('!') || text.startsWith('?')) {
       // Prevent space if matching any of . , ! ?
       textString = textString.replace(/ $/, '');
@@ -105,7 +105,7 @@ const formatElement = (name, attribs, isClosingTag) => {
           elements.a.href = '';
         }
 
-        elements.a.current = false;
+        elements.a.isOpen = false;
         return;
       }
 
@@ -113,7 +113,7 @@ const formatElement = (name, attribs, isClosingTag) => {
         elements.a.href = `[${attribs.href}] `;
       }
 
-      elements.a.current = true;
+      elements.a.isOpen = true;
       break;
 
     case 'img':
@@ -132,7 +132,7 @@ const formatElement = (name, attribs, isClosingTag) => {
           }
         }
 
-        elements.img.current = false;
+        elements.img.isOpen = false;
         return;
       }
 
@@ -144,19 +144,19 @@ const formatElement = (name, attribs, isClosingTag) => {
         elements.img.alt = attribs.alt;
       }
 
-      elements.img.current = true;
+      elements.img.isOpen = true;
       break;
 
     case 'style':
-      elements.style.current = !isClosingTag;
+      elements.style.isOpen = !isClosingTag;
       break;
 
     case 'script':
-      elements.script.current = !isClosingTag;
+      elements.script.isOpen = !isClosingTag;
       break;
 
     case 'title':
-      elements.title.current = !isClosingTag;
+      elements.title.isOpen = !isClosingTag;
       break;
   }
 }
