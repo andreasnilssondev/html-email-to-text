@@ -52,29 +52,39 @@ const formatText = text => {
   if (/^\s*$/.test(text)) {
     return;
   }
+
+  // Format start of string
+  if (/^\s{2,}/.test(text) || /\s{2,}$/.test(textString)) {
+    // If text starts with multiple whitespace chars,
+    // or previous string ends with multiple whitespace chars
+    // replace with two line breaks only
+    text = text.replace(/^\s+/g, '\n\n');
+
+    // Max 2 line breaks in a row
+    textString = textString.replace(/\s+$/g, '');
+  } else {
+    // Otherwise no space
+    text = text.replace(/^\s+/g, '');
+  }
+
+  // Format end of string
+  if (/\s{2,}$/.test(text)) {
+    // if text ends with multiple whitespace chars
+    // replace with two line breaks only
+    text = text.replace(/\s+$/, '\n\n');
+  } else if (!/\s+$/.test(text)) {
+    // If no whitespace after string, add one space
+    text += ' ';
+  }
+
   if (elements.a.current) {
-    elements.a.text += `${text}`;
+    elements.a.text += text;
   } else if (elements.title.current) {
-    textString += `${text.toUpperCase()}\n\n--------------------\n\n`;
+    textString += `${text.toUpperCase()}\n\n--------------------\n\n\n`;
   } else if (!elements.style.current && !elements.style.script) {
-    text = text.replace(/[\s]{2,}$/g, '');
-    text = text.replace(/^[\s]{2,}/g, '\n\n');
-
-    if (!text.endsWith(' ')) {
-      // Make sure string ends with some kind of whitespace
-      text += ' ';
-    }
-
-    if (text.startsWith(' ')) {
-      text = text.replace(/^ /, '');
-    }
-
     if (text.startsWith('.') || text.startsWith(',') || text.startsWith('!') || text.startsWith('?')) {
       // Prevent space if matching any of . , ! ?
       textString = textString.replace(/ $/, '');
-    } else if (textString.endsWith(']')) {
-      // Make sure there's space after href
-      textString += ' ';
     }
 
     textString += text;
@@ -91,7 +101,7 @@ const formatElement = (name, attribs, isClosingTag) => {
         }
 
         if (elements.a.href) {
-          textString += `${elements.a.href}`;
+          textString += elements.a.href;
           elements.a.href = '';
         }
 
@@ -100,7 +110,7 @@ const formatElement = (name, attribs, isClosingTag) => {
       }
 
       if (attribs.href) {
-        elements.a.href = ` [${attribs.href.replace(/^\s+/g,'')}]`;
+        elements.a.href = `[${attribs.href}] `;
       }
 
       elements.a.current = true;
@@ -108,22 +118,21 @@ const formatElement = (name, attribs, isClosingTag) => {
 
     case 'img':
       if (isClosingTag) {
-        elements.img.current = false;
 
         if (elements.img.alt) {
-          if (!textString.match(/[\n]{2,}$/g)) {
-            textString = textString.replace(/\s$/g, '\n\n');
-          }
-
-          textString += `${elements.img.alt}\n`;
+          // Max two line breaks as whitespace.
+          textString.replace(/\s+$/, '');
+          textString += `\n\n${elements.img.alt}`;
           elements.img.alt = '';
 
           if (elements.a.href) {
-            elements.a.href = `${elements.a.href.replace(/^\s+/g, '')}`;
-            elements.a.href = `${elements.a.href.replace(/\s+$/g, '')}\n\n`;
+            textString += `\n${elements.a.href}`;
+            elements.a.href = '';
+            elements.a.text = '';
           }
         }
 
+        elements.img.current = false;
         return;
       }
 
@@ -132,7 +141,7 @@ const formatElement = (name, attribs, isClosingTag) => {
       }
 
       if (attribs.alt) {
-        elements.img.alt = attribs.alt.replace(/^\s{2,}/g, '\n\n');
+        elements.img.alt = attribs.alt;
       }
 
       elements.img.current = true;
