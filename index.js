@@ -80,7 +80,7 @@ const formatText = text => {
   if (elements.a.current) {
     elements.a.text += text;
   } else if (elements.title.current) {
-    textString += `${text.toUpperCase()}\n\n--------------------\n\n\n`;
+    textString += `${text.toUpperCase()}\n\n--------------------\n\n`;
   } else if (!elements.style.current && !elements.style.script) {
     if (text.startsWith('.') || text.startsWith(',') || text.startsWith('!') || text.startsWith('?')) {
       // Prevent space if matching any of . , ! ?
@@ -121,7 +121,7 @@ const formatElement = (name, attribs, isClosingTag) => {
 
         if (elements.img.alt) {
           // Max two line breaks as whitespace.
-          textString.replace(/\s+$/, '');
+          textString = textString.replace(/\s+$/, '');
           textString += `\n\n${elements.img.alt}`;
           elements.img.alt = '';
 
