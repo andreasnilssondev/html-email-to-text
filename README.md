@@ -83,3 +83,6 @@ If you wrap links around images it will use the alt text together with the link.
 alt text
 [/link-to-somewhere]
 ```
+
+## License
+MIT © [Andreas Nilsson](http://github.com/NaNdreas)
