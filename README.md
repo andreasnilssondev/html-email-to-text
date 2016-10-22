@@ -7,7 +7,7 @@ $ npm install --save html-email-to-text
 ```
 
 ## Usage
-```
+```js
 const htmlToText = require('html-email-to-text');
 
 htmlToText('Html as a string');
@@ -16,7 +16,7 @@ htmlToText('Html as a string');
 ## Examples
 
 ### HTML input
-```
+```html
 <!DOCTYPE html>
 <head>
   <title>Subject line: Title will be uppercase</title>
