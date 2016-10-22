@@ -1,6 +1,6 @@
 {
   "name": "html-email-to-text",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Convert html emails to (formatted) plain text",
   "license": "MIT",
   "repository": "NaNdreas/html-email-to-text",
@@ -14,6 +14,14 @@
   },
   "files": [
     "index.js"
+  ],
+  "keywords": [
+    "email",
+    "email-text",
+    "formatter",
+    "html",
+    "html-to-text",
+    "text"
   ],
   "dependencies": {
     "htmlparser2": "^3.9.2"
