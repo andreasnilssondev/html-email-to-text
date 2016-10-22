@@ -1,6 +1,7 @@
 const htmlparser = require('htmlparser2');
 
-var textString = '';
+var output = [''];
+var lastType = '';
 
 const htmlToText = html => {
   if (typeof(html) !== 'string') {
@@ -10,7 +11,7 @@ const htmlToText = html => {
   parser.write(html);
   parser.end();
 
-  return textString;
+  return output.join('');
 };
 
 const parser = new htmlparser.Parser({
@@ -38,7 +39,8 @@ const elements = {
     alt: ''
   },
   style: {
-    isOpen: false
+    isOpen: false,
+    ignore: true
   },
   script: {
     isOpen: false
@@ -50,114 +52,118 @@ const elements = {
 
 const formatText = text => {
   if (/^\s*$/.test(text)) {
+    // ignore text with only whitespace
     return;
   }
 
-  var doubleLineBreak = false;
-
-  if (/\s{2,}$/.test(textString)) {
-    textString = textString.replace(/\s+$/, '\n\n');
-    doubleLineBreak = true;
+  if (elements.script.isOpen || elements.style.isOpen) {
+    // ignore script and style elements
+    return;
   }
 
+  if (elements.title.isOpen) {
+    // set uppercase title and add divider
+    output.push(`${text.toUpperCase()}\n\n--------------------\n\n`);
+    lastType = 'title';
+    return;
+  }
+
+  if (lastType === 'title') {
+    // Don't break divider after title
+    text = text.replace(/^\s+/, '');
+  }
+
+  // Always end text with a space
+  if (!/\s+$/.test(text) && text.length > 1) {
+    text += ' ';
+  } else {
+    text = text.replace(/\s+$/, ' ');
+  }
+
+  if (elements.a.isOpen) {
+    elements.a.text = `${text}`;
+    return;
+  }
+
+  if (lastType === 'a.href') {
+    if (text.startsWith('.') || text.startsWith(',') || text.startsWith('!') || text.startsWith('?')) {
+      // Remove space if matching any of [.,!?]
+      output[output.length - 1] = output[output.length - 1].replace(/ $/, '');
+    } else {
+      text = text.replace(/^\s+/, '');
+    }
+  }
+
+  // Use a maximum of two line breaks for whitespace in beginning of text
   if (/^\s{2,}/.test(text)) {
-    if (doubleLineBreak) {
+    if (lastType === 'img') {
       text = text.replace(/^\s+/, '');
     } else {
       text = text.replace(/^\s+/, '\n\n');
     }
-
-    doubleLineBreak = true;
   }
 
-  if (!/^\n/.test(text) && doubleLineBreak) {
-    text = text.replace(/^\s+/, '');
-  }
-
-  // Format end of string
-  if (/\s{2,}$/.test(text)) {
-    // if text ends with multiple whitespace chars
-    // replace with two line breaks only
-    text = text.replace(/\s+$/, ' ');
-  }
-
-  if (!/\s+$/.test(text)) {
-    // If no whitespace after string, add one space
-    // text += ' ';
-  }
-
-  if (elements.a.isOpen) {
-    elements.a.text += text;
-  } else if (elements.title.isOpen) {
-    textString += `${text.toUpperCase()}\n\n--------------------\n\n`;
-  } else if (!elements.style.isOpen && !elements.style.script) {
-    if (text.startsWith('.') || text.startsWith(',') || text.startsWith('!') || text.startsWith('?')) {
-      // Prevent space if matching any of . , ! ?
-      textString = textString.replace(/ $/, '');
+  if (lastType === 'img.href') {
+    // If img link was used last string, add line breaks
+    if (/^\s/.test(text)) {
+      text.replace(/^\s+/, '\n\n');
+    } else {
+      text = `\n\n${text}`;
     }
-
-    textString += text;
   }
+
+  output.push(text);
+  lastType = 'text';
 };
 
 const formatElement = (name, attribs, isClosingTag) => {
   switch (name) {
     case 'a':
-      if (isClosingTag) {
-        if (elements.a.text) {
-          if (/\s{2,}$/.test(textString)) {
+      elements.a.isOpen = !isClosingTag;
 
-          }
-          textString += elements.a.text;
+      if (elements.a.isOpen) {
+        if (!attribs) {
+          return;
+        }
+
+        if (attribs.href) {
+          elements.a.href = `[${attribs.href}] `;
+        }
+      } else {
+        if (elements.a.text) {
+          output.push(elements.a.text);
           elements.a.text = '';
+          lastType = 'a.text';
         }
 
         if (elements.a.href) {
-          textString += elements.a.href;
+          output.push(elements.a.href);
           elements.a.href = '';
+          lastType = lastType === 'img' ? 'img.href' : 'a.href';
         }
-
-        elements.a.isOpen = false;
-        return;
       }
 
-      if (attribs.href) {
-        elements.a.href = ` [${attribs.href}] `;
-      }
-
-      elements.a.isOpen = true;
       break;
 
     case 'img':
-      if (isClosingTag) {
+      elements.img.isOpen = !isClosingTag;
 
-        if (elements.img.alt) {
-          // Max two line breaks as whitespace.
-          textString = textString.replace(/\s+$/, '');
-          textString += `\n\n${elements.img.alt}\n`;
-          elements.img.alt = '';
-
-          if (elements.a.href) {
-            elements.a.href += '\n\n';
-            textString += `${elements.a.href.replace(/^ /, '')}`;
-            elements.a.href = '';
-            elements.a.text = '';
-          }
+      if (elements.img.isOpen) {
+        if (!attribs) {
+          return;
         }
 
-        elements.img.isOpen = false;
-        return;
+        if (attribs.alt) {
+          elements.img.alt = `\n\n${attribs.alt}\n`;
+        }
+      } else {
+        if (elements.img.alt) {
+          output.push(`${elements.img.alt}`);
+          elements.img.alt = '';
+          lastType = 'img';
+        }
       }
 
-      if (!attribs) {
-        return;
-      }
-
-      if (attribs.alt) {
-        elements.img.alt = attribs.alt;
-      }
-
-      elements.img.isOpen = true;
       break;
 
     case 'style':
